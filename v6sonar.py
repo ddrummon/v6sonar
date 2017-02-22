@@ -4,7 +4,6 @@
 This script it to interact with the v6sonar API for managing accounts, agents, and monitors.
 TODO: Add reporting function
 """
-""" This is a test """
 
 import os
 import sys
