@@ -16,7 +16,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 
-cfg_filename = os.path.join(os.path.dirname(__file__), 'v6sonar.cfg')
+cfg_filename = os.path.join(os.path.dirname(__file__), '/conf/v6sonar.cfg')
 config = configparser.RawConfigParser()
 config.read(cfg_filename)
 
