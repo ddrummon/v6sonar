@@ -1,0 +1,14 @@
+2016-08-29 21:34:30,405 - root - INFO - Starting up the v6sonar API program
+2016-08-29 21:34:30,405 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/authorize?clientId=<redacted>
+2016-08-29 21:34:31,506 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/account/706d6d61
+2016-08-29 21:35:25,763 - root - INFO - Starting up the v6sonar API program
+2016-08-29 21:35:25,763 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/authorize?clientSecret=<redacted>
+2016-08-29 21:35:26,020 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/account/706d6d61
+2016-08-29 21:37:11,655 - root - INFO - Starting up the v6sonar API program
+2016-08-29 21:37:11,656 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/authorize?clientSecret=<redacted>
+2016-08-29 21:37:12,087 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/accounts/706d6d61
+2016-09-07 11:12:21,335 - root - INFO - Starting up the v6sonar API wrapper
+2016-09-07 11:12:21,335 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/authorize?clientId=<redacted>
+2016-09-07 11:12:21,467 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/accounts/706d6d61
+2016-09-07 11:12:21,550 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/authorize?clientId=<redacted>
+2016-09-07 11:12:21,650 - root - DEBUG - URL: https://api.v6sonar.com:443/v1/users
