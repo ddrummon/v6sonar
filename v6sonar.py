@@ -3,6 +3,11 @@
 """
 This script it to interact with the v6sonar API for managing accounts, agents, and monitors.
 TODO: Add reporting function
+TODO: Create installer
+TODO: Fix CLI flags
+TODO: Add database hooks
+TODO: Add formatting to the CLI command output
+TODO: Add ability to import sites from an Excel spreadsheet or .csv
 """
 
 import os
