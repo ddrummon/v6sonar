@@ -15,12 +15,10 @@ import sys
 import datetime
 import json
 import logging
-from collections import OrderedDict
 import configparser
+import pprint
 import requests
-import urllib.request
-import urllib.error
-import urllib.parse
+
 
 cfg_filename = os.path.join(os.path.dirname(__file__), 'conf/v6sonar.conf')
 config = configparser.RawConfigParser()
@@ -57,208 +55,238 @@ def start_logging(filename=LOG_FILENAME, format=LOG_FORMAT, level=DEFAULT_LOG_LE
     # log a message
     logging.info('Starting up the v6sonar API wrapper')
 
-"Create the url for the request"
-#url = API_BASEURL + ":" + API_PORT + "/" + API_VERSION + "/" + path
-
 def _url(path):
     return API_BASEURL + ":" + API_PORT + "/" + API_VERSION + "/" + path
 
-class APIGet(object):
-
-    def auth(self):
-        pass
-
-    def account_by_id(self):
-        """ https://api.v6sonar.com:443/v1/accounts/{accountid} """
-        jresult = get_auth()
-        request = urllib.request.Request(_url("accounts") + "/" + API_ACCOUNT_ID)
-        request.add_header('Authorization', 'Bearer ' + jresult['value'])
-        logging.debug('URL: ' + _url("accounts") + "/" + API_ACCOUNT_ID)
-
-        try:
-            response = urllib.request.urlopen(request)
-            results = response.read()
-            print(results)
-        except urllib.error.HTTPError as e:
-            print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
-
-    def accounts(self):
-        pass
-
-    def agents():
-        """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
-        jresult = get_auth()
-        request = urllib.request.Request(_url("agents") + "?" + "accountId=" + API_ACCOUNT_ID)
-        request.add_header('Authorization', 'Bearer ' + jresult['value'])
-        logging.debug('URL: ' + _url("agents") + "?" + "accountId=" + API_ACCOUNT_ID)
-
-        try:
-            response = urllib.request.urlopen(request)
-            results = response.read()
-            print(results)
-        except urllib.error.HTTPError as e:
-            print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
-        pass
-
-    def agent_by_id(self):
-        pass
-
-
-class APIPut(object):
-    pass
-
-
-class APIDelete(object):
-    pass
-
-
-def api_put():
-    pass
-
-
-def api_post():
-    pass
-
-
-def api_del():
-    pass
-
-
-def get_auth():
+def auth():
     """ https://api.v6sonar.com:443/v1/authorize?{clientSecret}&{clientid} """
     data = {'clientSecret': API_SECRET, 'clientId': API_CLIENT_ID}
-    url_values = urllib.parse.urlencode(data)
-    logging.debug('URL: ' + _url("authorize") + "?" + url_values)
-
     try:
-        response = urllib.request.urlopen(_url("authorize") + "?" + url_values)
-        results = response.read()
-        jresult = json.loads(results.decode('utf-8'))
-        eresult = results.json()
-        print(eresult)
-        return jresult, exp
-    except urllib.error.HTTPError as e:
+        r = requests.get(_url("authorize"), params=data)
+        logging.debug('URL: ' + r.url)
+        value = r.json()["value"]
+        return value
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_agents(no_systems_agents="True", get_services="False"):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    data = {"accountId": API_ACCOUNT_ID, "noSystemAgents": no_systems_agents, "getServices": get_services}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("agents"), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_agent_by_id(agent_id):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("agents/" + agent_id), headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 
-def put_acct_by_id():
-    pass
-
-
-def del_acct_by_id():
-    pass
-
-def post_accounts():
-    pass
-
-def put_agent_by_id():
-    pass
-
-
-def del_agent_by_id():
-    pass
-
-
-def get_monitor_by_agent():
-    pass
-
+def get_measurements_by_agent_id(agent_id, starttime=None, endtime=None):
+    """https://api.v6sonar.com:443/v1/agents/706d6d616b387573889FB622F5C46791/measurements?start=2017-06-22T05%3A00%3A00.00Z&end=2017-06-22T06%3A00%3A00.00Z"""
+    auth()
+    data = {"start": starttime, "end": endtime}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("agents/" + agent_id + "/measurements"), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 def get_tasks():
-    pass
-
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("tasks"), headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 def get_services():
-    pass
-
-
-def post_services():
-    pass
-
-
-def get_services_by_service_id():
-    pass
-
-
-def put_services_by_service_id():
-    pass
-
-
-def del_services_by_service_id():
-    pass
-
-
-def get_services_by_acct_id():
-    pass
-
-
-def get_agents_with_servie_id():
-    pass
-
-
-def get_measurements_by_service_id():
-    pass
-
-
-def get_history_by_service_id():
-    pass
-
-
-def get_measurement_by_id():
-    pass
-
-
-def get_jobs():
-    pass
-
-
-def post_jobs():
-    pass
-
-
-def get_job_by_id():
-    pass
-
-
-def get_users():
-    data = {'clientSecret': API_SECRET, 'clientId': API_CLIENT_ID}
-    url_values = urllib.parse.urlencode(data)
-    logging.debug('URL: ' + _url("authorize") + "?" + url_values)
-    resp = urllib.request.urlopen(_url("authorize") + "?" + url_values)
-    res = resp.read()
-    j = json.loads(res.decode('utf-8'))
-    logging.debug("URL: " + _url("users"))
-    request = urllib.request.Request(_url("users"))
-    request.add_header('Authorization', 'Bearer ' + j['value'])
-
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
     try:
-        response = urllib.request.urlopen(request)
-        results = response.read()
-        print(results)
-    except urllib.error.HTTPError as e:
+        r = requests.get(_url("services"), headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_service_by_service_id(serviceId):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("services/" + serviceId), headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_service_by_account_id():
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("services/account/" + API_ACCOUNT_ID), headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_agents_by_service_id(service_id, account_id=None, no_systems_agents="True", get_services="False", agent_id=None):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    data = {"noSystemAgents": no_systems_agents, "getServices": get_services}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("services/" + service_id + "/agents"), params= data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        pprint.pprint(r.json())
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_measurements_by_service_id(service_id, starttime=None, endtime=None):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    data = {"start": starttime, "end": endtime}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_service_id_history(service_id, starttime=None, endtime=None):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    data = {"start": starttime, "end": endtime}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("services/" + service_id + "/history"), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_measurement_by_measurement_id(measurement_id, starttime=None, endtime=None):
+    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    auth()
+    data = {"start": starttime, "end": endtime}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("measurements/" + measurement_id), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_jobs(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
+    """https://api.v6sonar.com:443/v1/jobs?limit=5&ignoreAccountResults=true"""
+    auth()
+    data = {"start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("jobs/" + account_id), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_jobs_by_id(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
+    """https://api.v6sonar.com:443/v1/jobs?limit=5&ignoreAccountResults=true"""
+    auth()
+    data = {"start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("jobs/" + account_id), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 
-def post_users():
-    pass
+def get_users(email=None, username=None, deleted=None):
+    """https://api.v6sonar.com:443/v1/users"""
+    auth()
+    data = {"email": email, "username": username, "getDeleted": deleted}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("users"), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-
-def get_user_by_id():
-    pass
-
-
-def put_user_by_id():
-    pass
-
-
-def del_user_by_id():
-    pass
-
-
-def print_results():
-    pass
+def get_users_by_id(user_id=None):
+    """https://api.v6sonar.com:443/v1/users"""
+    auth()
+    data = {}
+    headers = {"Authorization": "Bearer" + auth()}
+    try:
+        r = requests.get(_url("users/" + user_id), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("No measurements returned for this agent.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 if __name__ == "__main__":
     start_logging()
-    print(APIGet.agents())
+    #get_agents()
+    #get_agent_by_id("706d6d616b387573E2624BE96361670E")
+    #get_measurements_by_agent_id("706d6d616b387573889FB622F5C46791", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
+    #get_services()
+    #get_service_by_service_id("bh4m4jkh")
+    #get_service_by_account_id()
+    #get_agents_by_service_id("bh4m4jkh")
+    #get_measurements_by_service_id("bh4m4jkh")
+    #get_service_id_history("bh4m4jkh", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z" )
+    #get_measurement_by_measurement_id("0e301e8e-3648-433f-b257-ecaf06fa9627", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
+    #get_jobs(ignore_account_details="False", starttime="2017-06-22T05:00:00.00Z", endtime="2017-06-22T10:00:00.00Z")
+    #get_jobs_by_id()
+    #get_users()
+    #get_users_by_id("6b71736a")
+    #get_tasks()
+    #print(APIGet.agents())
     #get_accts_by_id()
     #get_users()
