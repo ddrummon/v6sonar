@@ -1,4 +1,4 @@
-# v6sonar-api-wrapper
+# v6sonar
 Wrapper for v6sonar API
 
 Website - http://www.v6sonar.com/
