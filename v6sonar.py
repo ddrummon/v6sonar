@@ -47,8 +47,6 @@ LEVELS = {'debug': logging.DEBUG,
           'critical': logging.CRITICAL
           }
 
-agents = ["706d6d616b387573889FB622F5C46791", "706d6d616b387573E2624BE96361670E", "706d6d616b3875731365CBC755213D93"]
-
 def start_logging(filename=LOG_FILENAME, format=LOG_FORMAT, level=DEFAULT_LOG_LEVEL):
     """
     Start logging with given filename and level.
@@ -202,7 +200,8 @@ def get_measurements_by_service_id(service_id, starttime=None, endtime=None):
         r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers, params=data)
         logging.debug('URL: ' + r.url)
         try:
-            pprint.pprint(r.json())
+            return r.json()
+            #pprint.pprint(r.json())
         except ValueError as e:
             print("No measurements returned for this agent.")
     except requests.HTTPError as e:
