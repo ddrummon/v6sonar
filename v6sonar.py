@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-"""
-This script it to interact with the v6sonar API for managing accounts, agents, and monitors.
-TODO: Add reporting function
-TODO: Create installer
-TODO: Fix CLI flags
-TODO: Add database hooks
-TODO: Add formatting to the CLI command output
-TODO: Add ability to import sites from an Excel spreadsheet or .csv
-"""
+
+# This script it to interact with the v6sonar API for managing accounts, agents, and monitors.
+# TODO: Add reporting function
+# TODO: Create installer
+# TODO: Fix CLI flags
+# TODO: Add database hooks
+# TODO: Add formatting to the CLI command output
+# TODO: Add ability to import sites from an Excel spreadsheet or .csv
+
 
 import os
 import sys
@@ -66,8 +66,8 @@ def auth():
     try:
         r = requests.get(_url("authorize"), params=data)
         logging.debug('URL: ' + r.url)
-        value = r.json()["value"]
-        return value
+        token = r.json()["value"]
+        return token
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
@@ -194,12 +194,12 @@ def get_agents_by_service_id(service_id, account_id=None, no_systems_agents="Tru
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 def get_measurements_by_service_id(service_id, starttime=None, endtime=None):
-    """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
+    """https://api.v6sonar.com:443/v1/services/ifb3dz9v/measurements?start=2017-08-14T11%3A11%3A58.000Z&end=2017-08-14T17%3A11%3A58.000Z"""
     auth()
     data = {"start": starttime, "end": endtime}
     headers = {"Authorization": "Bearer" + auth()}
     try:
-        r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers)
+        r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers, params=data)
         logging.debug('URL: ' + r.url)
         try:
             pprint.pprint(r.json())
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     #get_service_by_account_id()
     #get_agents_by_service_id("bh4m4jkh")
     #get_agents_by_service_id("wfjo2a0r")
-    #get_measurements_by_service_id("ikqrq3bs")
+    get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
     #get_service_id_history("bh4m4jkh", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z" )
     #get_measurement_by_measurement_id("0e301e8e-3648-433f-b257-ecaf06fa9627", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
     #get_jobs(ignore_account_details="False", starttime="2017-06-22T05:00:00.00Z", endtime="2017-06-22T10:00:00.00Z")
