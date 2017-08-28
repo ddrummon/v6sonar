@@ -47,6 +47,10 @@ LEVELS = {'debug': logging.DEBUG,
           'critical': logging.CRITICAL
           }
 
+class API(object):
+    """API Object wrapper"""
+    pass
+
 def start_logging(filename=LOG_FILENAME, format=LOG_FORMAT, level=DEFAULT_LOG_LEVEL):
     """
     Start logging with given filename and level.
@@ -67,7 +71,7 @@ def auth():
         token = r.json()["value"]
         return token
     except requests.HTTPError as e:
-        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+        logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 def get_agents(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
@@ -80,7 +84,7 @@ def get_agents(no_systems_agents="True", get_services="False"):
         #pprint.pprint(r.json())
         return r.json()
     except requests.HTTPError as e:
-        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+        logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 def get_agents_list(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
@@ -103,7 +107,7 @@ def get_agent_by_id(agent_id):
         logging.debug('URL: ' + r.url)
         pprint.pprint(r.json())
     except requests.HTTPError as e:
-        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+        logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 
 def get_measurements_by_agent_id(agent_id, starttime=None, endtime=None):
@@ -117,7 +121,7 @@ def get_measurements_by_agent_id(agent_id, starttime=None, endtime=None):
         try:
             pprint.pprint(r.json())
         except ValueError as e:
-            print("No measurements returned for this agent.")
+            logging.error("No measurements returned for this agent.")
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
@@ -200,10 +204,10 @@ def get_measurements_by_service_id(service_id, starttime=None, endtime=None):
         r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers, params=data)
         logging.debug('URL: ' + r.url)
         try:
-            return r.json()
-            #pprint.pprint(r.json())
+            #return r.json()
+            pprint.pprint(r.json())
         except ValueError as e:
-            print("No measurements returned for this agent.")
+            logging.error("No measurements returned for this agent.")
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
@@ -218,7 +222,7 @@ def get_service_id_history(service_id, starttime=None, endtime=None):
         try:
             pprint.pprint(r.json())
         except ValueError as e:
-            print("No measurements returned for this agent.")
+            logging.error("No measurements returned for this agent.")
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
