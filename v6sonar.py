@@ -20,64 +20,63 @@ import pprint
 import requests
 
 
-cfg_filename = os.path.join(os.path.dirname(__file__), 'conf/v6sonar.conf')
-config = configparser.RawConfigParser()
-config.read(cfg_filename)
-
-#  Log file information
-LOG_FILENAME = (os.path.join(os.path.dirname(__file__), config.get('log', 'output')))
-LOG_FORMAT = config.get('log', 'format')
-
-#  Basic API information
-API_BASEURL = config.get('api-base', 'baseurl')
-API_VERSION = config.get('api-base', 'version')
-API_PORT = config.get('api-base', 'port')
-
-#  Account specific API information
-API_ACCOUNT_ID = config.get('api-ecu', 'accountid')
-API_CLIENT_ID = config.get('api-ecu', 'clientid')
-API_SECRET = config.get('api-ecu', 'secret')
-
-DEFAULT_LOG_LEVEL = "debug"  # Default log level
-
-LEVELS = {'debug': logging.DEBUG,
-          'info': logging.INFO,
-          'warning': logging.WARNING,
-          'error': logging.ERROR,
-          'critical': logging.CRITICAL
-          }
-
 class API(object):
     """API Object wrapper"""
-    pass
+    cfg_filename = os.path.join(os.path.dirname(__file__), 'conf/v6sonar.conf')
+    config = configparser.RawConfigParser()
+    config.read(cfg_filename)
 
-def start_logging(filename=LOG_FILENAME, format=LOG_FORMAT, level=DEFAULT_LOG_LEVEL):
-    """
-    Start logging with given filename and level.
-    """
-    logging.basicConfig(filename=filename, level=LEVELS[level], format=format)
-    # log a message
-    logging.info('Starting up the v6sonar API wrapper')
+    #  Log file information
+    LOG_FILENAME = (os.path.join(os.path.dirname(__file__), config.get('log', 'output')))
+    LOG_FORMAT = config.get('log', 'format')
 
-def _url(path):
-    return API_BASEURL + ":" + API_PORT + "/" + API_VERSION + "/" + path
+    #  Basic API information
+    BASEURL = config.get('api-base', 'baseurl')
+    VERSION = config.get('api-base', 'version')
+    PORT = config.get('api-base', 'port')
 
-def auth():
-    """ https://api.v6sonar.com:443/v1/authorize?{clientSecret}&{clientid} """
-    data = {'clientSecret': API_SECRET, 'clientId': API_CLIENT_ID}
-    try:
-        r = requests.get(_url("authorize"), params=data)
-        logging.debug('URL: ' + r.url)
-        token = r.json()["value"]
-        return token
-    except requests.HTTPError as e:
-        logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+    #  Account specific API information
+    ACCOUNT_ID = config.get('api-ecu', 'accountid')
+    CLIENT_ID = config.get('api-ecu', 'clientid')
+    SECRET = config.get('api-ecu', 'secret')
+
+    DEFAULT_LOG_LEVEL = "debug"  # Default log level
+
+    LEVELS = {'debug': logging.DEBUG,
+              'info': logging.INFO,
+              'warning': logging.WARNING,
+              'error': logging.ERROR,
+              'critical': logging.CRITICAL
+              }
+
+    def start_logging(filename=LOG_FILENAME, format=LOG_FORMAT, level=DEFAULT_LOG_LEVEL):
+        """
+        Start logging with given filename and level.
+        """
+        logging.basicConfig(filename=filename, level=LEVELS[level], format=format)
+        # log a message
+        logging.info('Starting up the v6sonar API wrapper')
+
+    def _url(path):
+        return BASEURL + ":" + PORT + "/" + VERSION + "/" + path
+
+    def auth():
+        """ https://api.v6sonar.com:443/v1/authorize?{clientSecret}&{clientid} """
+        data = {'clientSecret': SECRET, 'clientId': CLIENT_ID}
+        try:
+            r = requests.get(_url("authorize"), params=data)
+            logging.debug('URL: ' + r.url)
+            token = r.json()["value"]
+            return token
+        except requests.HTTPError as e:
+            logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ",
+                          e)
+
 
 def get_agents(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
-    auth()
-    data = {"accountId": API_ACCOUNT_ID, "noSystemAgents": no_systems_agents, "getServices": get_services}
-    headers = {"Authorization": "Bearer" + auth()}
+    data = {"accountId": API.ACCOUNT_ID, "noSystemAgents": no_systems_agents, "getServices": get_services}
+    headers = {"Authorization": "Bearer" + API.auth()}
     try:
         r = requests.get(_url("agents"), params=data, headers=headers)
         logging.debug('URL: ' + r.url)
@@ -241,7 +240,7 @@ def get_measurement_by_measurement_id(measurement_id, starttime=None, endtime=No
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-def get_jobs(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
+def get_jobs(account_id=API.ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
     """https://api.v6sonar.com:443/v1/jobs?limit=5&ignoreAccountResults=true"""
     auth()
     data = {"start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
@@ -256,7 +255,7 @@ def get_jobs(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=Non
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-def get_jobs_by_id(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
+def get_jobs_by_id(account_id=API.ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
     """https://api.v6sonar.com:443/v1/jobs?limit=5&ignoreAccountResults=true"""
     auth()
     data = {"start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
@@ -369,9 +368,9 @@ def delete_service_by_service_id(serviceId):
 
 
 if __name__ == "__main__":
-    start_logging()
+    API.start_logging()
     #auth()
-    #print(get_agents())
+    print(get_agents())
     #print(get_agents_list())
     #print(get_agents_list_by_name())
     #get_agent_by_id("706d6d616b387573E2624BE96361670E")
@@ -385,7 +384,7 @@ if __name__ == "__main__":
     #get_service_by_account_id()
     #get_agents_by_service_id("bh4m4jkh")
     #get_agents_by_service_id("wfjo2a0r")
-    get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
+    #get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
     #get_service_id_history("bh4m4jkh", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z" )
     #get_measurement_by_measurement_id("0e301e8e-3648-433f-b257-ecaf06fa9627", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
     #get_jobs(ignore_account_details="False", starttime="2017-06-22T05:00:00.00Z", endtime="2017-06-22T10:00:00.00Z")
