@@ -244,10 +244,10 @@ def get_measurement_by_measurement_id(measurement_id, starttime=None, endtime=No
 def get_jobs(account_id=API_ACCOUNT_ID, starttime=None, endtime=None, job_id=None, limit=5, ignore_account_details="True"):
     """https://api.v6sonar.com:443/v1/jobs?limit=5&ignoreAccountResults=true"""
     auth()
-    data = {"start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
+    data = {"accountid": account_id, "start": starttime, "end": endtime, "jobIds": job_id, "limit": limit, "ignoreAccountResults": ignore_account_details}
     headers = {"Authorization": "Bearer" + auth()}
     try:
-        r = requests.get(_url("jobs/" + account_id), params=data, headers=headers)
+        r = requests.get(_url("jobs"), params=data, headers=headers)
         logging.debug('URL: ' + r.url)
         try:
             pprint.pprint(r.json())
@@ -385,10 +385,10 @@ if __name__ == "__main__":
     #get_service_by_account_id()
     #get_agents_by_service_id("bh4m4jkh")
     #get_agents_by_service_id("wfjo2a0r")
-    get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
+    #get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
     #get_service_id_history("bh4m4jkh", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z" )
     #get_measurement_by_measurement_id("0e301e8e-3648-433f-b257-ecaf06fa9627", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
-    #get_jobs(ignore_account_details="False", starttime="2017-06-22T05:00:00.00Z", endtime="2017-06-22T10:00:00.00Z")
+    get_jobs(limit="10")
     #get_jobs_by_id()
     #get_users()
     #get_users_by_id("6b71736a")
