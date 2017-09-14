@@ -96,7 +96,9 @@ def get_agents_list_by_name(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
     data = get_agents()
     agentsbyname = [d['agentName'] for d in data]
-    return agentsbyname
+    agentid = [d['id'] for d in data]
+    pair = zip(agentsbyname, agentid)
+    return pair
 
 def get_agent_by_id(agent_id):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
@@ -195,17 +197,17 @@ def get_agents_by_service_id(service_id, account_id=None, no_systems_agents="Tru
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-def get_measurements_by_service_id(service_id, starttime=None, endtime=None):
+def get_measurements_by_service_id(service_id, starttime=None, endtime=None, limit=None):
     """https://api.v6sonar.com:443/v1/services/ifb3dz9v/measurements?start=2017-08-14T11%3A11%3A58.000Z&end=2017-08-14T17%3A11%3A58.000Z"""
     auth()
-    data = {"start": starttime, "end": endtime}
+    data = {"start": starttime, "end": endtime, "limit": limit}
     headers = {"Authorization": "Bearer" + auth()}
     try:
         r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers, params=data)
         logging.debug('URL: ' + r.url)
         try:
-            #return r.json()
-            pprint.pprint(r.json())
+            return r.json()
+            #pprint.pprint(r.json())
         except ValueError as e:
             logging.error("No measurements returned for this agent.")
     except requests.HTTPError as e:
@@ -367,11 +369,28 @@ def delete_service_by_service_id(serviceId):
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
+def put_service(service):
+    auth()
+    headers = {"Authorization": "Bearer" + auth()}
+    data = {
+                "interval": 300,
+           }
+    try:
+        r = requests.put(_url("services/" + service), params=data, headers=headers)
+        logging.debug('URL: ' + r.url)
+        logging.debug('URL Details: ' + str(r.content))
+        logging.debug('Status Code: ' + str(r.status_code))
+        try:
+            pprint.pprint(r.json())
+        except ValueError as e:
+            print("Unable to post the value.")
+    except requests.HTTPError as e:
+        print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
 if __name__ == "__main__":
     start_logging()
     #auth()
-    #print(get_agents())
+    #pprint.pprint(get_agents())
     #print(get_agents_list())
     #print(get_agents_list_by_name())
     #get_agent_by_id("706d6d616b387573E2624BE96361670E")
@@ -388,7 +407,7 @@ if __name__ == "__main__":
     #get_measurements_by_service_id("ifb3dz9v", starttime="2017-08-14T11:11:58.000Z", endtime="2017-08-14T17:11:58.000Z")
     #get_service_id_history("bh4m4jkh", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z" )
     #get_measurement_by_measurement_id("0e301e8e-3648-433f-b257-ecaf06fa9627", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
-    get_jobs(limit="10")
+    #get_jobs(limit="20")
     #get_jobs_by_id()
     #get_users()
     #get_users_by_id("6b71736a")
@@ -397,3 +416,4 @@ if __name__ == "__main__":
     #get_accts_by_id()
     #get_users()
     #post_service("facebook.com", agents)
+    #put_service("ikqrq3bs")
