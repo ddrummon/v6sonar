@@ -14,6 +14,7 @@ import os
 import sys
 import datetime
 import json
+import math
 import logging
 import configparser
 import pprint
@@ -72,6 +73,32 @@ def auth():
         return token
     except requests.HTTPError as e:
         logging.error("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+
+def get_data(url, starttime=None, endtime=None, limit=None, offset=None):
+    auth()
+    data = {"start": starttime, "end": endtime, "limit": limit, "offset": offset}
+    headers = {"Authorization": "Bearer" + auth()}
+    results = []
+    response = requests.get(url, params=data, headers=headers)
+    logging.debug("200 URL: {0}".format(response.url))
+    logging.debug(response.status_code)
+    if response.status_code == 200:
+        rdata = response.json()
+        results.extend(rdata)
+        return results
+    if response.status_code == 206:
+        rcontent = response.headers['content-range']
+        a, total = rcontent.split("/")
+        chunk = int(math.ceil(int(total) / limit))
+        for i in range(0, chunk, 1):
+            offset = i * limit
+            logging.debug("Offset: {0} \nStatus Code: {1}".format(offset, response.status_code))
+            data = {"start": starttime, "end": endtime, "limit": limit, "offset": offset}
+            response = requests.get(url, params=data, headers=headers)
+            logging.debug("206 Loop URL: {0}".format(response.url))
+            rdata = response.json()
+            results.extend(rdata)
+    return results
 
 def get_agents(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
@@ -197,19 +224,13 @@ def get_agents_by_service_id(service_id, account_id=None, no_systems_agents="Tru
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-def get_measurements_by_service_id(service_id, starttime=None, endtime=None, limit=None):
+def get_measurements_by_service_id(service_id, starttime=None, endtime=None, limit=None, offset=None):
     """https://api.v6sonar.com:443/v1/services/ifb3dz9v/measurements?start=2017-08-14T11%3A11%3A58.000Z&end=2017-08-14T17%3A11%3A58.000Z"""
-    auth()
-    data = {"start": starttime, "end": endtime, "limit": limit}
-    headers = {"Authorization": "Bearer" + auth()}
+    url = _url("services/" + service_id + "/measurements")
     try:
-        r = requests.get(_url("services/" + service_id + "/measurements"), headers=headers, params=data)
-        logging.debug('URL: ' + r.url)
-        try:
-            return r.json()
-            #pprint.pprint(r.json())
-        except ValueError as e:
-            logging.error("No measurements returned for this agent.")
+        return get_data(url, starttime, endtime, limit, offset)
+    except ValueError:
+        logging.error("No measurements returned for this agent.")
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
@@ -396,7 +417,7 @@ if __name__ == "__main__":
     #get_agent_by_id("706d6d616b387573E2624BE96361670E")
     #get_measurements_by_agent_id("706d6d616b387573889FB622F5C46791", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
     #get_services()
-    #get_services_list_by_id()
+    get_services_list_by_id()
     #get_services_list_by_name("facebook")
     #delete_service_by_service_id("zpskj6ej")
     #get_service_by_service_id("bh4m4jkh")
