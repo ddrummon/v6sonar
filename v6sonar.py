@@ -35,9 +35,9 @@ API_VERSION = config.get('api-base', 'version')
 API_PORT = config.get('api-base', 'port')
 
 #  Account specific API information
-API_ACCOUNT_ID = config.get('api-ecu', 'accountid')
-API_CLIENT_ID = config.get('api-ecu', 'clientid')
-API_SECRET = config.get('api-ecu', 'secret')
+API_ACCOUNT_ID = config.get('api-trs', 'accountid')
+API_CLIENT_ID = config.get('api-trs', 'clientid')
+API_SECRET = config.get('api-trs', 'secret')
 
 DEFAULT_LOG_LEVEL = "debug"  # Default log level
 
@@ -98,7 +98,9 @@ def get_data(url, starttime=None, endtime=None, limit=None, offset=None):
             logging.debug("206 Loop URL: {0}".format(response.url))
             rdata = response.json()
             results.extend(rdata)
-    return results
+        return results
+    if response.status_code == 400:
+        logging.exception()
 
 def get_agents(no_systems_agents="True", get_services="False"):
     """https://api.v6sonar.com:443/v1/agents?accountId=706d6d61&noSystemAgents=true&&getServices=false&"""
@@ -390,23 +392,27 @@ def delete_service_by_service_id(serviceId):
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
 
-def put_service(service):
+def put_service(service, accountid=API_ACCOUNT_ID):
     auth()
     headers = {"Authorization": "Bearer" + auth()}
+    print(str(headers))
     data = {
-                "interval": 300,
-           }
+             "accountId": accountid,
+                "interval": 3600
+            }
     try:
-        r = requests.put(_url("services/" + service), params=data, headers=headers)
+        print(auth())
+        r = requests.put(_url("services/" + service), json=data, headers=headers)
         logging.debug('URL: ' + r.url)
-        logging.debug('URL Details: ' + str(r.content))
         logging.debug('Status Code: ' + str(r.status_code))
+        logging.debug('Response: ' + str(r.content))
         try:
-            pprint.pprint(r.json())
-        except ValueError as e:
-            print("Unable to post the value.")
+            logging.debug(r.status_code)
+        except ValueError:
+            logging.error("Unable to post the value.")
     except requests.HTTPError as e:
         print("Error: " + sys._getframe().f_code.co_name + " : Unable to complete request due to error: ", e)
+    return r.status_code
 
 if __name__ == "__main__":
     start_logging()
@@ -417,7 +423,7 @@ if __name__ == "__main__":
     #get_agent_by_id("706d6d616b387573E2624BE96361670E")
     #get_measurements_by_agent_id("706d6d616b387573889FB622F5C46791", "2017-06-22T05:00:00.00Z", "2017-06-22T10:00:00.00Z")
     #get_services()
-    get_services_list_by_id()
+    #get_services_list_by_id()
     #get_services_list_by_name("facebook")
     #delete_service_by_service_id("zpskj6ej")
     #get_service_by_service_id("bh4m4jkh")
